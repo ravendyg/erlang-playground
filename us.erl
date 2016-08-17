@@ -18,14 +18,11 @@ insert(X,Set) ->
 
 
 head(L) -> L.
-   
 
-greet(male, Name) ->
-    io:format("Hello, Mr. ~s~n", [Name]);
-greet(female, Name) ->
-    io:format("Hello, Mrs. ~s~n", [Name]);
-greet(_, Name) ->
-    io:format("Hello, ~s~n", [Name]).
+
+greet(male,   Name) -> io:format("Hello, Mr. ~s~n",  [Name]);
+greet(female, Name) -> io:format("Hello, Mrs. ~s~n", [Name]);
+greet(_,      Name) -> io:format("Hello, ~s~n",      [Name]).
 
 wrong_age(X) when X < 16; X > 106 ->
     true;
@@ -83,21 +80,21 @@ both(X) ->
 
 fac(0) -> 1;
 fac(N) when N > 0  -> N * fac(N - 1).
-    
+
 lenPr([], Acc) -> Acc;
 lenPr([_|Rest], Acc) -> lenPr(Rest, Acc+1).
 
 len(L) -> lenPr(L, 0).
 
 duplicatePr(0, _, L) -> L;
-duplicatePr(C, I, L) -> duplicatePr(C - 1, I, [I | L]). 
+duplicatePr(C, I, L) -> duplicatePr(C - 1, I, [I | L]).
 
 duplicate(C, I) -> duplicatePr(C, I, []).
 
 
 subPr(_, Acc, 0) -> Acc;
 subPr([], Acc, _)       -> Acc;
-subPr([H|T], Acc, I) -> subPr(T, [H|Acc], I - 1). 
+subPr([H|T], Acc, I) -> subPr(T, [H|Acc], I - 1).
 
 sublist(L,I) -> reverse( subPr(L,[],I) ).
 
@@ -116,15 +113,16 @@ zip(_, []) -> [];
 zip([X|Xs], [Y|Ys]) -> [ {X,Y} | zip(Xs,Ys) ].
 
 qs([])     -> [];
-qs([H|T])  -> 
-    {Ls, Gt} = part(H,T),
-    qs(Ls) ++ [H] ++ qs(Gt).
+qs([H|T])  ->
+    {Ls, Eq, Gt} = part(H,T),
+    qs(Ls) ++ [H|Eq] ++ qs(Gt).
 
 compPr(_,[],R)                         -> R;
-compPr(A,[H|L],{Ls,Gt}) when A >= H -> compPr(A, L, {[H|Ls], Gt});
-compPr(A,[H|L],{Ls,Gt}) when A < H  -> compPr(A, L, {Ls, [H|Gt]}).
+compPr(A,[H|L],{Ls,Eq,Gt}) when A > H  -> compPr(A, L, {[H|Ls], Eq, Gt});
+compPr(A,[H|L],{Ls,Eq,Gt}) when A < H  -> compPr(A, L, {Ls, Eq, [H|Gt]});
+compPr(A,[H|L],{Ls,Eq,Gt}) when A == H -> compPr(A, L, {Ls, [H|Eq], Gt}).
 
-part(A,L) -> compPr(A,lists:reverse(L),{[],[]}).
+part(A,L) -> compPr(A,lists:reverse(L),{[],[],[]}).
 
 
 %[{Ls,Eq,Gt} || X <- L, X < A].

@@ -1,6 +1,6 @@
 -module(tree).
 
--export([empty/0, insert/3, lookup/2]).
+-export([empty/0, insert/3, lookup/2, emptyLat/0, emptyLon/0, insert2/4, lookup2/2]).
 
 empty() -> {node, 'nil'}.
 
@@ -24,4 +24,25 @@ lookup(Key, {node, {NodeKey, _, Smaller, _}}) when Key < NodeKey ->
     lookup(Key, Smaller);
 lookup(Key, {node, {NodeKey, _, _, Larger}}) when Key > NodeKey ->
     lookup(Key, Larger).
-			     
+
+emptyLat () -> {node, lat, 'nil'}.
+emptyLon () -> {node, lon, 'nil'}.
+
+insert2 (Lat, Lon, Val, {node, lat, 'nil'}) ->
+  {node, lat, {Lat, Lon, Val, emptyLon(), emptyLon()} };
+insert2 (Lat, Lon, Val, {node, lon, 'nil'}) ->
+  {node, lon, {Lat, Lon, Val, emptyLat(), emptyLat()} };
+insert2 (NewLat, NewLon, NewVal, {node, lat, {Lat, Lon, Val, Smaller, Larger} })
+  when NewLat < Lat ->
+    {node, lat, {Lat, Lon, Val, insert2(NewLat, NewLon, NewVal, Smaller), Larger} };
+insert2 (NewLat, NewLon, NewVal, {node, lat, {Lat, Lon, Val, Smaller, Larger} })
+  when NewLat >= Lat ->
+    {node, lat, {Lat, Lon, Val, Smaller, insert2(NewLat, NewLon, NewVal, Larger)} };
+insert2 (NewLat, NewLon, NewVal, {node, lon, {Lat, Lon, Val, Smaller, Larger} })
+  when NewLon < Lon ->
+    {node, lon, {Lat, Lon, Val, insert2(NewLat, NewLon, NewVal, Smaller), Larger} };
+insert2 (NewLat, NewLon, NewVal, {node, lon, {Lat, Lon, Val, Smaller, Larger} })
+  when NewLon >= Lon ->
+    {node, lon, {Lat, Lon, Val, Smaller, insert2(NewLat, NewLon, NewVal, Larger)} }.
+
+lookup2 (X, Y) -> {X, Y}.

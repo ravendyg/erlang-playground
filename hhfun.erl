@@ -3,9 +3,13 @@
 -compile(export_all).
 %-export([one/0, two/0, add/2]).
 
+-define(sub(X,Y), X-Y).
+
 one () -> 1.
 
 two () -> 2.
+
+ssub(X,Y) -> ?sub(X,Y).
 
 add (X, Y) -> X() + Y().
 
@@ -37,4 +41,4 @@ filter(Pred, [H|T], Acc) ->
     false -> filter(Pred, T, Acc)
   end.
 
-max([H|T]) -> max2(T,H).
+%max([H|T]) -> max2(T,H).

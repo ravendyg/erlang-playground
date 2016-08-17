@@ -1,6 +1,9 @@
 -module(tree).
 
--export([empty/0, insert/3, lookup/2, emptyLat/0, emptyLon/0, insert2/4, lookup2/2]).
+%-import(us).
+
+-export([empty/0, insert/3, lookup/2, emptyLat/0, emptyLon/0, insert2/4,
+    lookup2/2, test2d/0, testList2d/1, testWiki2d/0, testWiki2dSorted/0]).
 
 empty() -> {node, 'nil'}.
 
@@ -46,3 +49,21 @@ insert2 (NewLat, NewLon, NewVal, {node, lon, {Lat, Lon, Val, Smaller, Larger} })
     {node, lon, {Lat, Lon, Val, Smaller, insert2(NewLat, NewLon, NewVal, Larger)} }.
 
 lookup2 (X, Y) -> {X, Y}.
+
+test2d () ->
+  Q  = insert2(7,2,1,emptyLat()),
+  Q2 = insert2(5,4,2,Q),
+  Q3 = insert2(2,3,3,Q2),
+  Q4 = insert2(9,6,4,Q3),
+  Q5 = insert2(4,7,5,Q4),
+  insert2(8,1,6,Q5).
+
+testList2d (L) -> testList2dTail(L, emptyLat()).
+
+testList2dTail ([], Acc) -> Acc;
+testList2dTail ([{Lat, Lon, Val}|T], Acc) ->
+  testList2dTail(T, insert2(Lat, Lon, Val, Acc)).
+
+testWiki2d () -> testList2d([{2,3,1},{5,4,2},{9,6,3},{4,7,4},{8,1,5},{7,2,6}]).
+
+testWiki2dSorted () -> testList2d([{7,2,1},{5,4,2},{9,6,3},{2,3,4},{4,7,5},{8,1,6}]).

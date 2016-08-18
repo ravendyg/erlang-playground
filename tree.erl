@@ -1,9 +1,12 @@
+%https://en.wikipedia.org/wiki/K-d_tree
+
 -module(tree).
 
 %-import(us).
 
 -export([empty/0, insert/3, lookup/2, emptyLat/0, emptyLon/0, insert2/4,
-    lookup2/2, test2d/0, testList2d/1, testWiki2d/0, testWiki2dSorted/0]).
+    lookup2/2, test2d/0, testList2d/1, testWiki2d/1, getTestPoints/0,
+    getCenter/1, calculateDistanceToCenter/1, map/2]).
 
 empty() -> {node, 'nil'}.
 
@@ -58,12 +61,65 @@ test2d () ->
   Q5 = insert2(4,7,5,Q4),
   insert2(8,1,6,Q5).
 
+% create a 2D tree from a list [{X, Y, N}] of points
 testList2d (L) -> testList2dTail(L, emptyLat()).
 
 testList2dTail ([], Acc) -> Acc;
 testList2dTail ([{Lat, Lon, Val}|T], Acc) ->
   testList2dTail(T, insert2(Lat, Lon, Val, Acc)).
 
-testWiki2d () -> testList2d([{2,3,1},{5,4,2},{9,6,3},{4,7,4},{8,1,5},{7,2,6}]).
+% order point by their distance from the center of gravity
+% then create a 2D tree
+% accepts list of point [{X,Y,N}]
+% or 'nil' if you want to use internal test set
+testWiki2d ('nil') ->
+  {_, _, _, L} = calculateDistanceToCenter( getTestPoints() ),
+  Vals = qs(L),
+  Points = [{X,Y,N} || {point, {X,Y,N}, distance, _} <- Vals],
+  testList2d(Points);
+testWiki2d (RandomList) ->
+  {_, _, _, L} = calculateDistanceToCenter(RandomList),
+  Vals = qs(L),
+  Points = [{X,Y,N} || {point, {X,Y,N}, distance, _} <- Vals],
+  testList2d(Points).
 
-testWiki2dSorted () -> testList2d([{7,2,1},{5,4,2},{9,6,3},{2,3,4},{4,7,5},{8,1,6}]).
+getTestPoints () -> [{2,3,1},{5,4,2},{9,6,3},{4,7,4},{8,1,5},{7,2,6}].
+
+% calculate center of gravity in 2D space
+getCenter (L) -> getCenterAcc(L, 0, 0, 0).
+getCenterAcc ([], _, _, 0) -> {0, 0};
+getCenterAcc ([], X, Y, N) -> {X/N, Y/N};
+getCenterAcc ([{Xc, Yc, _}|T], X, Y, N) -> getCenterAcc(T, X+Xc, Y+Yc, N+1).
+
+% calculate center of given points and their distances from that center
+% [{lat, lon, anything}] -> {a:center, {Xc, Yc}, a:points, [{a:point, {lat, lon, anything}, a:distance, distance}]
+calculateDistanceToCenter (L) ->
+  Center = getCenter(L),
+  {center, Center, points, addDistance(L, Center, [])}.
+
+% calculate distance on a plane between 2 points
+get2DDistance ({X1, Y1}, {X2, Y2}) -> math:sqrt( math:pow(X1-X2,2) + math:pow(Y1-Y2,2) ).
+
+% add distance to some center to all points in the lists
+% [{lat, lon, anything}, {Xc, Yc}, []] -> [{a:point, {lat, lon, anything}, a:distance, distance}]
+addDistance ([], _, Acc) -> Acc;
+addDistance ([{X, Y, N}|T], {Xc, Yc}, Acc) ->
+  addDistance(T, {Xc, Yc}, [{point, {X,Y,N}, distance, get2DDistance({X, Y}, {Xc, Yc})} | Acc]).
+
+% map helper function
+map (F, L) -> lists:reverse( mapTail(F, L, []) ).
+mapTail (_, [], Acc) -> Acc;
+mapTail (F, [H|T], Acc) -> mapTail(F, T, [F(H) | Acc]).
+
+% quick sort for addDistance output
+qs([])    -> [];
+qs([H|T]) ->
+    {Ls, Eq, Gt} = part(H,T),
+    qs(Ls) ++ [H|Eq] ++ qs(Gt).
+
+compPr(_,[],R) -> R;
+compPr({Q,W,E,A},[{R,T,Y,H}|L],{Ls,Eq,Gt}) when A > H  -> compPr({Q,W,E,A}, L, {[{R,T,Y,H}|Ls], Eq, Gt});
+compPr({Q,W,E,A},[{R,T,Y,H}|L],{Ls,Eq,Gt}) when A < H  -> compPr({Q,W,E,A}, L, {Ls, Eq, [{R,T,Y,H}|Gt]});
+compPr({Q,W,E,A},[{R,T,Y,H}|L],{Ls,Eq,Gt}) when A == H -> compPr({Q,W,E,A}, L, {Ls, [{R,T,Y,H}|Eq], Gt}).
+
+part(A,L) -> compPr(A,lists:reverse(L),{[],[],[]}).

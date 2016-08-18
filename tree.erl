@@ -10,8 +10,8 @@
 
 empty() -> {node, 'nil'}.
 
-%node: {node, {Key, Value, Smaller, Larger}}
-
+% create a simple binary search tree
+% {node, {Key, Value, LeftNode, RightNode}}
 insert(Key, Val, {node, 'nil'}) ->
     {node, {Key, Val, empty(), empty()}};
 insert(NewKey, NewVal, {node, {Key, Val, Smaller, Larger}})
@@ -23,6 +23,7 @@ insert(NewKey, NewVal, {node, {Key, Val, Smaller, Larger}})
 insert(Key, Val, {node, {Key, _, Smaller, Larger}}) ->
     {node, {Key, Val, Smaller, Larger}}.
 
+% search in binary tree
 lookup(_, {node, 'nil'}) -> undefined;
 lookup(Key, {node, {Key, Val, _, _}}) ->
     {ok, Val};
@@ -34,6 +35,8 @@ lookup(Key, {node, {NodeKey, _, _, Larger}}) when Key > NodeKey ->
 emptyLat () -> {node, lat, 'nil'}.
 emptyLon () -> {node, lon, 'nil'}.
 
+% create a 2D tree
+% {node, lat || lon, {Lat, Lon, Value, LeftNode, RightNode}}
 insert2 (Lat, Lon, Val, {node, lat, 'nil'}) ->
   {node, lat, {Lat, Lon, Val, emptyLon(), emptyLon()} };
 insert2 (Lat, Lon, Val, {node, lon, 'nil'}) ->
@@ -51,8 +54,10 @@ insert2 (NewLat, NewLon, NewVal, {node, lon, {Lat, Lon, Val, Smaller, Larger} })
   when NewLon >= Lon ->
     {node, lon, {Lat, Lon, Val, Smaller, insert2(NewLat, NewLon, NewVal, Larger)} }.
 
+% search not yet implemented
 lookup2 (X, Y) -> {X, Y}.
 
+% create a 2D tree with hardcoded values
 test2d () ->
   Q  = insert2(7,2,1,emptyLat()),
   Q2 = insert2(5,4,2,Q),
@@ -63,7 +68,7 @@ test2d () ->
 
 % create a 2D tree from a list [{X, Y, N}] of points
 testList2d (L) -> testList2dTail(L, emptyLat()).
-
+% tail recursion expansion of testList2d
 testList2dTail ([], Acc) -> Acc;
 testList2dTail ([{Lat, Lon, Val}|T], Acc) ->
   testList2dTail(T, insert2(Lat, Lon, Val, Acc)).

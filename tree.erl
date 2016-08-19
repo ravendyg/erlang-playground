@@ -6,7 +6,7 @@
 
 -export([empty/0, insert/3, lookup/2, emptyLat/0, emptyLon/0, insert2/4,
     lookup2/2, test2d/0, testList2d/1, testWiki2d/1, getTestPoints/0,
-    getCenter/1, calculateDistanceToCenter/1, map/2]).
+    getCenter/1, calculateDistanceToCenter/1, testBinaryTree/0, has_value/2]).
 
 empty() -> {node, 'nil'}.
 
@@ -32,6 +32,44 @@ lookup(Key, {node, {NodeKey, _, Smaller, _}}) when Key < NodeKey ->
 lookup(Key, {node, {NodeKey, _, _, Larger}}) when Key > NodeKey ->
     lookup(Key, Larger).
 
+% search not yet implemented
+lookup2 (X, Y) -> {X, Y}.
+
+testBinaryTree () ->
+  insert(2,6,
+    insert(5,5,
+      insert(9,4,
+        insert(7,3,
+          insert(6,2,
+            insert(3, 1, {node, 'nil'})
+          )
+        )
+      )
+    )
+  ).
+
+
+has_value (Val, Tree) ->
+  try has_value1(Val, Tree) of
+    false -> false
+  catch
+    true -> true
+  end.
+
+has_value1 (_, {node, 'nil'}) -> false;
+has_value1 (Val, {node, {_, Val, _, _}}) -> throw(true);
+has_value1 (Val, {node, {_, _, Left, Rigth}}) ->
+  has_value1(Val, Left),
+  has_value1(Val, Rigth).
+
+
+
+
+
+
+
+
+
 emptyLat () -> {node, lat, 'nil'}.
 emptyLon () -> {node, lon, 'nil'}.
 
@@ -54,8 +92,10 @@ insert2 (NewLat, NewLon, NewVal, {node, lon, {Lat, Lon, Val, Smaller, Larger} })
   when NewLon >= Lon ->
     {node, lon, {Lat, Lon, Val, Smaller, insert2(NewLat, NewLon, NewVal, Larger)} }.
 
-% search not yet implemented
-lookup2 (X, Y) -> {X, Y}.
+% nearest ({X, Y}, {node, _, 'nil'}) -> empty;
+% nearest ({X, Y}, {node, lat, {Lat, Lon, _, Left, Right}})
+%   when X < Lat ->
+%     Distance -> get2DDistance({X, Y}, {Lat, Lon}),
 
 % create a 2D tree with hardcoded values
 test2d () ->
@@ -91,10 +131,10 @@ testWiki2d (RandomList) ->
 getTestPoints () -> [{2,3,1},{5,4,2},{9,6,3},{4,7,4},{8,1,5},{7,2,6}].
 
 % calculate center of gravity in 2D space
-getCenter (L) -> getCenterAcc(L, 0, 0, 0).
-getCenterAcc ([], _, _, 0) -> {0, 0};
-getCenterAcc ([], X, Y, N) -> {X/N, Y/N};
-getCenterAcc ([{Xc, Yc, _}|T], X, Y, N) -> getCenterAcc(T, X+Xc, Y+Yc, N+1).
+getCenter (L) -> getCenter(L, 0, 0, 0).
+getCenter ([], _, _, 0) -> {0, 0};
+getCenter ([], X, Y, N) -> {X/N, Y/N};
+getCenter ([{Xc, Yc, _}|T], X, Y, N) -> getCenter(T, X+Xc, Y+Yc, N+1).
 
 % calculate center of given points and their distances from that center
 % [{lat, lon, anything}] -> {a:center, {Xc, Yc}, a:points, [{a:point, {lat, lon, anything}, a:distance, distance}]
@@ -110,11 +150,6 @@ get2DDistance ({X1, Y1}, {X2, Y2}) -> math:sqrt( math:pow(X1-X2,2) + math:pow(Y1
 addDistance ([], _, Acc) -> Acc;
 addDistance ([{X, Y, N}|T], {Xc, Yc}, Acc) ->
   addDistance(T, {Xc, Yc}, [{point, {X,Y,N}, distance, get2DDistance({X, Y}, {Xc, Yc})} | Acc]).
-
-% map helper function
-map (F, L) -> lists:reverse( mapTail(F, L, []) ).
-mapTail (_, [], Acc) -> Acc;
-mapTail (F, [H|T], Acc) -> mapTail(F, T, [F(H) | Acc]).
 
 % quick sort for addDistance output
 qs([])    -> [];

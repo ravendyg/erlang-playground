@@ -23,8 +23,13 @@ decrement([H|T]) -> [H-1|decrement(T)].
 map(_,[]) -> [];
 map(F, [H|T]) -> [F(H)|map(F,T)].
 
+reduce(_,[],Acc) -> Acc;
+reduce(F,[H|T],Acc) -> reduce(F,T,F(H,Acc)).
+
 incr(X) -> X + 1.
 decr(X) -> X - 1.
+
+decr(X,D) -> X - D.
 
 % base(A) ->
 %     B = A + 1,
@@ -42,3 +47,5 @@ filter(Pred, [H|T], Acc) ->
   end.
 
 %max([H|T]) -> max2(T,H).
+
+clear () -> io:format("\e[H\e[J").

@@ -4,9 +4,11 @@
 
 %-import(us).
 
--export([empty/0, insert/3, lookup/2, emptyLat/0, emptyLon/0, insert2/4,
-    lookup2/2, test2d/0, testList2d/1, testWiki2d/1, getTestPoints/0,
-    getCenter/1, calculateDistanceToCenter/1, testBinaryTree/0, has_value/2]).
+-export([empty/0, insert/3, lookup/2,
+  % emptyLat/0, emptyLon/0, insert2/4, lookup2/2, test2d/0,
+  emptykd/1, insertkd/4, testkd/0,
+  testList2d/1, testWiki2d/1, getTestPoints/0,
+  getCenter/1, calculateDistanceToCenter/1, testBinaryTree/0, has_value/2]).
 
 empty() -> {node, 'nil'}.
 
@@ -70,48 +72,69 @@ has_value1 (Val, {node, {_, _, Left, Rigth}}) ->
 
 
 
-emptyLat () -> {node, lat, 'nil'}.
-emptyLon () -> {node, lon, 'nil'}.
+% emptyLat () -> {node, lat, 'nil'}.
+% emptyLon () -> {node, lon, 'nil'}.
 
-% create a 2D tree
-% {node, lat || lon, {Lat, Lon, Value, LeftNode, RightNode}}
-insert2 (Lat, Lon, Val, {node, lat, 'nil'}) ->
-  {node, lat, {Lat, Lon, Val, emptyLon(), emptyLon()} };
-insert2 (Lat, Lon, Val, {node, lon, 'nil'}) ->
-  {node, lon, {Lat, Lon, Val, emptyLat(), emptyLat()} };
-insert2 (NewLat, NewLon, NewVal, {node, lat, {Lat, Lon, Val, Smaller, Larger} })
-  when NewLat < Lat ->
-    {node, lat, {Lat, Lon, Val, insert2(NewLat, NewLon, NewVal, Smaller), Larger} };
-insert2 (NewLat, NewLon, NewVal, {node, lat, {Lat, Lon, Val, Smaller, Larger} })
-  when NewLat >= Lat ->
-    {node, lat, {Lat, Lon, Val, Smaller, insert2(NewLat, NewLon, NewVal, Larger)} };
-insert2 (NewLat, NewLon, NewVal, {node, lon, {Lat, Lon, Val, Smaller, Larger} })
-  when NewLon < Lon ->
-    {node, lon, {Lat, Lon, Val, insert2(NewLat, NewLon, NewVal, Smaller), Larger} };
-insert2 (NewLat, NewLon, NewVal, {node, lon, {Lat, Lon, Val, Smaller, Larger} })
-  when NewLon >= Lon ->
-    {node, lon, {Lat, Lon, Val, Smaller, insert2(NewLat, NewLon, NewVal, Larger)} }.
+% % create a 2D tree
+% % {node, lat || lon, {Lat, Lon, Value, LeftNode, RightNode}}
+% insert2 (Lat, Lon, Val, {node, lat, 'nil'}) ->
+%   {node, lat, {Lat, Lon, Val, emptyLon(), emptyLon()} };
+% insert2 (Lat, Lon, Val, {node, lon, 'nil'}) ->
+%   {node, lon, {Lat, Lon, Val, emptyLat(), emptyLat()} };
+% insert2 (NewLat, NewLon, NewVal, {node, lat, {Lat, Lon, Val, Smaller, Larger} })
+%   when NewLat < Lat ->
+%     {node, lat, {Lat, Lon, Val, insert2(NewLat, NewLon, NewVal, Smaller), Larger} };
+% insert2 (NewLat, NewLon, NewVal, {node, lat, {Lat, Lon, Val, Smaller, Larger} })
+%   when NewLat >= Lat ->
+%     {node, lat, {Lat, Lon, Val, Smaller, insert2(NewLat, NewLon, NewVal, Larger)} };
+% insert2 (NewLat, NewLon, NewVal, {node, lon, {Lat, Lon, Val, Smaller, Larger} })
+%   when NewLon < Lon ->
+%     {node, lon, {Lat, Lon, Val, insert2(NewLat, NewLon, NewVal, Smaller), Larger} };
+% insert2 (NewLat, NewLon, NewVal, {node, lon, {Lat, Lon, Val, Smaller, Larger} })
+%   when NewLon >= Lon ->
+%     {node, lon, {Lat, Lon, Val, Smaller, insert2(NewLat, NewLon, NewVal, Larger)} }.
+
+% create a 3D tree
+emptykd (Dimension) -> {node, Dimension, 'nil'}.
+% {node, 0..Dimension-1, {[D1, D2, D3], Value, LeftNode, RightNode}}
+insertkd (Coords, Val, {node, Dimension, 'nil'}, Size) ->
+  {node, Dimension, {Coords, Val, emptykd( nextDimension(Dimension, Size) ), emptykd( nextDimension(Dimension, Size) )} };
+insertkd (NewCoords, NewVal, {node, Dimension, {Coords, Val, Left, Right} }, Size) ->
+  case lists:nth(Dimension+1, NewCoords) < lists:nth(Dimension+1, Coords) of
+    true  -> {node, Dimension, {Coords, Val, insertkd(NewCoords, NewVal, Left, Size), Right} };
+    false -> {node, Dimension, {Coords, Val, Left, insertkd(NewCoords, NewVal, Right, Size)} }
+  end.
+
+nextDimension (Dimension, Size) -> (Dimension + 1) rem Size.
 
 % nearest ({X, Y}, {node, _, 'nil'}) -> empty;
 % nearest ({X, Y}, {node, lat, {Lat, Lon, _, Left, Right}})
 %   when X < Lat ->
 %     Distance -> get2DDistance({X, Y}, {Lat, Lon}),
 
-% create a 2D tree with hardcoded values
-test2d () ->
-  Q  = insert2(7,2,1,emptyLat()),
-  Q2 = insert2(5,4,2,Q),
-  Q3 = insert2(2,3,3,Q2),
-  Q4 = insert2(9,6,4,Q3),
-  Q5 = insert2(4,7,5,Q4),
-  insert2(8,1,6,Q5).
+% % create a 2D tree with hardcoded values
+% test2d () ->
+%   Q  = insert2(7,2,1,emptyLat()),
+%   Q2 = insert2(5,4,2,Q),
+%   Q3 = insert2(2,3,3,Q2),
+%   Q4 = insert2(9,6,4,Q3),
+%   Q5 = insert2(4,7,5,Q4),
+%   insert2(8,1,6,Q5).
+
+testkd () ->
+  Q  = insertkd([7,2],1,emptykd(0), 3),
+  Q2 = insertkd([5,4],2,Q, 3),
+  Q3 = insertkd([2,3],3,Q2, 3),
+  Q4 = insertkd([9,6],4,Q3, 3),
+  Q5 = insertkd([4,7],5,Q4, 3),
+  insertkd([8,1],6,Q5, 3).
 
 % create a 2D tree from a list [{X, Y, N}] of points
-testList2d (L) -> testList2dTail(L, emptyLat()).
+testList2d (L) -> testList2dTail(L, emptykd(0)).
 % tail recursion expansion of testList2d
 testList2dTail ([], Acc) -> Acc;
 testList2dTail ([{Lat, Lon, Val}|T], Acc) ->
-  testList2dTail(T, insert2(Lat, Lon, Val, Acc)).
+  testList2dTail(T, insertkd([Lat, Lon], Val, Acc, 2)).
 
 % order point by their distance from the center of gravity
 % then create a 2D tree

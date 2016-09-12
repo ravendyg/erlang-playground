@@ -19,6 +19,9 @@ parse("/", [First, Second | Rest]) ->
     0 -> throw("Division by zero");
     _ -> [Second / First | Rest]
   end;
+parse("^", [First, Second | Rest]) -> [math:pow(Second, First) | Rest];
+parse("ln", [First | Rest]) -> [math:log(First) | Rest];
+parse("log", [First | Rest]) -> [math:log10(First) | Rest];
 
 parse(Operand, Stack) ->
   {Val, _} = string:to_float(Operand),

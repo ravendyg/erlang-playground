@@ -11,21 +11,23 @@ run (Input, Separator) ->
   Res.
 
 
+parse("+", [First, Second | Rest]) -> [Second + First | Rest];
+parse("-", [First, Second | Rest]) -> [Second - First | Rest];
+parse("*", [First, Second | Rest]) -> [Second * First | Rest];
+parse("/", [First, Second | Rest]) ->
+  case First of
+    0 -> throw("Division by zero");
+    _ -> [Second / First | Rest]
+  end;
+
 parse(Operand, Stack) ->
-  {Val, _} = string:to_integer(Operand),
+  {Val, _} = string:to_float(Operand),
   case Val of
     error ->
-      [First | [Second | Rest]] = Stack,
-      case Operand of
-        "+" -> [Second + First | Rest];
-        "-" -> [Second - First | Rest];
-        "*" -> [Second * First | Rest];
-        "/" ->
-          case First of
-            0 -> throw("Division by zero");
-            _ -> [Second / First | Rest]
-          end;
-         _  -> throw("Unexpected operand: " ++ Operand)
+      {Val2, _} = string:to_integer(Operand),
+      case Val2 of
+        error -> throw("Unknown operand " ++ Operand);
+          _   -> [Val2 | Stack]
       end;
      _  -> [Val | Stack]
   end.

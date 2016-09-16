@@ -36,3 +36,14 @@ parse(Operand, Stack) ->
   end.
 
 % calc:run("10 12 + 2 / 8 + 3 * 5 /"). -> 11.4
+
+cl_test () ->
+  5 = run("2 3 +"),
+  87 = run("90 3 -"),
+  -2.0 = run("10 4 3 + 2 * - 2 /"),
+  ok = try
+    run(" 90 34 12 33 55 66 + * - +")
+  catch
+    error:{badmatch,[_|_]} -> ok
+  end,
+  ok.

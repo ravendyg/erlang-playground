@@ -4,14 +4,27 @@
 
 
 start() ->
-  io:format("start ~p~n", [self()]),
-  spawn(fun loop/0).
+  InitialState = [],
+  spawn(?MODULE, loop, [InitialState]).
 
-loop() ->
-  io:format("~p enters loop ~n", [self()]),
+loop(State) ->
   receive
-    stop -> io:format("~p stops now ~n", [self()]);
-    Msg  ->
-      io:format("~p receive ~p~n", [self(), Msg]),
-      loop()
+    {add, Item} ->
+      io:format("~p adds ~p to its state ~n", [self(), Item]),
+      NewState = [Item | State],
+      loop(NewState);
+    {remove, Item}  ->
+      NewState =
+        case lists:member(Item, State) of
+          true  -> lists:delete(Item, State);
+          false ->
+            io:format("Have no ~p~n", [Item]),
+            State
+        end,
+        loop(NewState);
+    show_items ->
+      io:format("my items are ~p~n", [State]),
+      loop(State);
+    stop -> io:format("~p stoped ~n", [self()]);
+    _    -> loop(State)
   end.

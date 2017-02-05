@@ -6,10 +6,10 @@
 
 %% BEGIN (write your solution here)
 start_link() ->
-    gen_server:start_link(?MODULE, {maps:new(), []}, []).
+    gen_server:start_link(?MODULE, [], []).
 
 
-init([]) -> {ok, []}.
+init([]) -> {ok, {[], []}}.
 
 
 %% API
@@ -36,15 +36,19 @@ add_message(RoomPid, Author, Text) ->
 
 %% callbacks
 handle_call({remove_user, UserPid}, _From, {Users, Messages}) ->
-    case maps:is_key(UserPid, Users) of
-        true  ->
-            {reply, ok, {maps:remove(UserPid, Users), Messages}};
+    case lists:keyfind(UserPid, 2, Users) of
+    % case maps:is_key(UserPid, Users) of
+        {_,_} ->
+            {reply, ok, {
+                [{Name, Pid} || {Name, Pid} <- Users, Pid =/= UserPid],
+                Messages
+            }};
         false ->
             {reply, {error, user_not_found}, {Users, Messages}}
     end;
 
 handle_call(get_users, _From, {Users, Messages}) ->
-    {reply, maps:to_list(Users), {Users, Messages}};
+    {reply, Users, {Users, Messages}};
 
 handle_call(get_history, _From, {Users, Messages}) ->
     {reply, lists:reverse(Messages), {Users, Messages}}.
@@ -52,11 +56,11 @@ handle_call(get_history, _From, {Users, Messages}) ->
 
 
 handle_cast({add_user, UserName, UserPid}, {Users, Messages}) ->
-    {noreply, {maps:update(UserPid, UserName, Users), Messages}};
+    {noreply, {[{UserName, UserPid} | Users], Messages}};
 
-handle_cast({add_message, Author, Text}, {Users, Messages}) ->
-    [chat_user:add_message(UserPid, Author, Text) || UserPid <- maps:keys(Users)],
-    {noreply, {Users, [{Author, Text} | Messages]}}.
+handle_cast({add_message, Author, Message}, {Users, Messages}) ->
+    [chat_user:add_message(UserPid, Author, Message) || {_, UserPid} <- Users],
+    {noreply, {Users, [{Author, Message} | Messages]}}.
 
 
 

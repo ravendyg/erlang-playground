@@ -5,4 +5,4 @@ build: clean
 	erlc *.erl
 
 clean:
-	-rm *.beam
+	-rm *.beam 2> /dev/null || echo > /dev/null

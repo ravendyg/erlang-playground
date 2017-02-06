@@ -16,7 +16,7 @@ work(Id) ->
     ok.
 
 run_and_crash() ->
-    [spawn_link(?MODULE, work_and_crash_one, [Id]) || Id <- lists:seq(0, 5)],
+    [spawn(?MODULE, work_and_crash_one, [Id]) || Id <- lists:seq(0, 5)],
     ok.
 
 work_and_crash_one(Id) ->

@@ -5,28 +5,6 @@
 start_link() ->
     supervisor:start_link({local, sup_2}, sup_2, []).
 
-init(_Args) ->
-    SupervisorSpecification = #{
-        strategy => one_for_one,
-        intensity => 10,
-        period => 60},
-
-    ChildSpecifications =
-        [#{id => worker1,
-           start => {worker, start_link, [worker_1]},
-           restart => permanent,
-           shutdown => 2000,
-           type => worker,
-           modules => [worker]},
-          #{id => worker2,
-           start => {worker, start_link, [worker_2]},
-           restart => permanent,
-           shutdown => 2000,
-           type => worker,
-           modules => [worker]}
-        ],
-    {ok, {SupervisorSpecification, ChildSpecifications}}.
-
 add_worker(WorkerRef) ->
   {ok, Child} = supervisor:start_child(
     sup_2,
@@ -41,3 +19,22 @@ add_worker(WorkerRef) ->
 remove_worker(WorkerRef) ->
   supervisor:terminate_child(sup_2, WorkerRef),
   supervisor:delete_child(sup_2, WorkerRef).
+
+init(_Args) ->
+    SupervisorSpecification = #{
+        strategy => one_for_one,
+        intensity => 10,
+        period => 60},
+
+    Worker1 = spec(worker_1),
+    Worker2 = spec(worker_2),
+    {ok, {SupervisorSpecification, [Worker1, Worker2]}}.
+
+spec(WorkerId) ->
+  #{id => WorkerId,
+    start => {worker, start_link, [WorkerId]},
+    restart => permanent,
+    shutdown => 2000,
+    type => worker,
+    modules => [worker]
+  }.

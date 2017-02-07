@@ -1,18 +1,13 @@
 -module(worker).
 
--export([start_file_reader/1, add_count/3]).
+-export([start_file_reader/2, add_count/3]).
 
-start_file_reader(Pid) ->
-  Ref = erlang:monitor(process, Pid),
-  receive
-    {read, FileName} ->
-      {ok, Str} = file:read_file(FileName),
-      Pid ! {data, parse_file(Str)};
-    {'DOWN', Ref, process, Pid, _Info} -> ok
-  end.
+start_file_reader(FileName, Pid) ->
+  {ok, Str} = file:read_file(FileName),
+  Pid ! {data, parse_file(Str)}.
 
 parse_file(Binary) ->
-  Items = binary:split(Binary, [<<" ">>, <<"\n">>, <<"\r">>], [global, trim]),
+  Items = binary:split(Binary, [<<"\n">>, <<"\n\r">>], [global, trim]),
   put_item_to_map(maps:new(), Items).
 
 put_item_to_map(State, []) ->

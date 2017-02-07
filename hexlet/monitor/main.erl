@@ -6,35 +6,36 @@
 parse(Files) ->
   Pids = [start(FileName) || FileName <- Files],
   % [start({ReaderPid, FileName}) || {ReaderPid, FileName} <- Readers],
-  listen_readers(maps:new(), maps:new(), Pids, length(Files)).
+  listen_readers(maps:new(), maps:new(), Pids).
 
 start(FileName) ->
-  ReaderPid = spawn(worker, start_file_reader, [self()]),
+  ReaderPid = spawn(worker, start_file_reader, [FileName, self()]),
   erlang:monitor(process, ReaderPid),
   ReaderPid ! {read, FileName},
   {ReaderPid, FileName}.
 
-listen_readers(Data, Errors, Pids, ReadersLeft) when ReadersLeft > 0 ->
-  % io:format("listen ~p~n", [ReadersLeft]),
+listen_readers(Data, Errors, []) -> {Data, Errors};
+listen_readers(Data, Errors, Pids) ->
   receive
     {data, NewData} ->
       UpdatedData = update_map(Data, maps:to_list(NewData)),
-      % io:format("~p~n", [[ReadersLeft, NewData]]),
-      listen_readers(UpdatedData, Errors, Pids, ReadersLeft - 1);
+      listen_readers(UpdatedData, Errors, Pids);
     {'DOWN', Reference, process, Pid, Info} ->
-      % io:format("here~n~p~n", [[Info, _Pid, Reference]]),
       erlang:demonitor(Reference, [flush]),
+      NewPids = lists:keydelete(Pid, 1, Pids),
       case Info of
-        normal -> listen_readers(Data, Errors, Pids, ReadersLeft);
+        normal ->
+          listen_readers(Data, Errors, NewPids);
         _ ->
           {_, FileName} = lists:keyfind(Pid, 1, Pids),
-          listen_readers(Data, maps:put(FileName, Info, Errors), Pids, ReadersLeft - 1)
+          listen_readers(Data, maps:put(FileName, Info, Errors), NewPids)
       end;
-    Any -> io:format("any~p~n", [Any])
+    Any ->
+      % don't expect anything else, but who knows
+      io:format("any~p~n", [Any])
   after 5000 ->
     io:format("timeout~n")
-  end;
-listen_readers(Data, Errors, _Pids, ReadersLeft) when ReadersLeft =< 0 -> {Data, Errors}.
+  end.
 
 % main:parse(["data_1.csv", "data_2.csv", "data_3.csv"]).
 % main:parse(["data_1.csv"]).

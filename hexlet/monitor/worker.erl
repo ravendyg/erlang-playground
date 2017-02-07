@@ -18,8 +18,8 @@ parse_file(Binary) ->
 put_item_to_map(State, []) ->
   State;
 put_item_to_map(State, [Item | Items]) ->
-  [_, Key, Count, _] = string:tokens(unicode:characters_to_list(Item), ","),
-  {IntCount, []} = string:to_integer(Count),
+  [_, Key, BinaryCount, _] = binary:split(Item, [<<",">>], [global, trim]),
+  {IntCount, []} = string:to_integer(unicode:characters_to_list(BinaryCount)),
   NewState = add_count(State, Key, IntCount),
   put_item_to_map(NewState, Items).
 

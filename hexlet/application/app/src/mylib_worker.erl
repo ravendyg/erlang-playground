@@ -7,20 +7,18 @@
 
 
 start_link() ->
-  gen_server:start_link(?MODULE, [], []).
+  gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
 init([]) ->
-  {ok, []}.
+  {ok, no_state}.
 
 
 %% API
 get_version() ->
-  {ok, Version} = application:get_key(mylib, vsn),
-  Version.
+  gen_server:call(?MODULE, get_version).
 
 get_modules() ->
-  {ok, Modules} = application:get_key(mylib, modules),
-  Modules.
+  gen_server:call(?MODULE, get_modules).
 
 get_min_val() ->
   {ok, MinVal} = application:get_env(mylib, min_val),
@@ -37,9 +35,13 @@ conver_app_info({Name, Desc, Version}, Map) ->
   maps:put(Name, #{description => Desc, version => Version}, Map).
 
 
-handle_call(get_id, _From, Id) ->
-  {reply, {Id, self()}, Id}.
+handle_call(get_version, _From, State) ->
+  {ok, Version} = application:get_key(mylib, vsn),
+{reply, Version, State};
 
+handle_call(get_modules, _From, State) ->
+  {ok, Modules} = application:get_key(mylib, modules),
+  {reply, Modules, State}.
 
 %%  plugs
 handle_cast(_, Id) ->

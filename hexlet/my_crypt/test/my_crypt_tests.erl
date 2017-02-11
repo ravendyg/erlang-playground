@@ -33,59 +33,59 @@ encode_test() ->
     ok.
 
 
-% get_set_key_test() ->
-%     setup(),
-%     Res = application:get_env(my_crypt, crypt_key),
-%     Key = my_crypt:get_key(),
-%     ?assertEqual({ok, Key}, Res),
+get_set_key_test() ->
+    setup(),
+    Res = application:get_env(my_crypt, crypt_key),
+    Key = my_crypt:get_key(),
+    ?assertEqual({ok, Key}, Res),
 
-%     Key1 = <<"MyNewEncryptKey">>,
-%     my_crypt:set_key(Key1),
-%     ?assertEqual(Key1, my_crypt:get_key()),
+    Key1 = <<"MyNewEncryptKey">>,
+    my_crypt:set_key(Key1),
+    ?assertEqual(Key1, my_crypt:get_key()),
 
-%     Key2 = <<"OtherEncryptKey">>,
-%     my_crypt:set_key(Key2),
-%     ?assertEqual(Key2, my_crypt:get_key()),
-%     ok.
-
-
-% hash_test() ->
-%     setup(),
-%     Bins = [
-%         <<"The Zen of Erlang">>,
-%         <<"http://ferd.ca/the-zen-of-erlang.html">>,
-%         <<"Let it crash?">>,
-%         <<"Blow it up">>,
-%         <<"Fight Fire with Fire">>,
-%         <<"Preemptive Scheduling">>,
-%         <<"Supervision Trees">>,
-%         <<"I should be able to sleep at night, right? Hopefully yes.">>
-%     ],
-%     lists:foldl(
-%         fun(Bin, Acc) ->
-%             Hash = my_crypt:hash(Bin),
-%             ?assertEqual(Hash, my_crypt:hash(Bin)), % same hash for same bin
-%             ?assertEqual(false, lists:member(Hash, Acc)), % hash not the same for prev bins
-%             [Hash | Acc]
-%         end, [], Bins),
-%     ok.
+    Key2 = <<"OtherEncryptKey">>,
+    my_crypt:set_key(Key2),
+    ?assertEqual(Key2, my_crypt:get_key()),
+    ok.
 
 
-% hash_size_test() ->
-%     setup(),
-%     Bin = <<"Hello World!">>,
+hash_test() ->
+    setup(),
+    Bins = [
+        <<"The Zen of Erlang">>,
+        <<"http://ferd.ca/the-zen-of-erlang.html">>,
+        <<"Let it crash?">>,
+        <<"Blow it up">>,
+        <<"Fight Fire with Fire">>,
+        <<"Preemptive Scheduling">>,
+        <<"Supervision Trees">>,
+        <<"I should be able to sleep at night, right? Hopefully yes.">>
+    ],
+    lists:foldl(
+        fun(Bin, Acc) ->
+            Hash = my_crypt:hash(Bin),
+            ?assertEqual(Hash, my_crypt:hash(Bin)), % same hash for same bin
+            ?assertEqual(false, lists:member(Hash, Acc)), % hash not the same for prev bins
+            [Hash | Acc]
+        end, [], Bins),
+    ok.
 
-%     {ok, HashSize1} = application:get_env(my_crypt, hash_size),
-%     Hash1 = my_crypt:hash(Bin),
-%     ?assertEqual(HashSize1, byte_size(Hash1)),
 
-%     HashSize2 = 32,
-%     application:set_env(my_crypt, hash_size, HashSize2),
-%     Hash2 = my_crypt:hash(Bin),
-%     ?assertEqual(HashSize2, byte_size(Hash2)),
+hash_size_test() ->
+    setup(),
+    Bin = <<"Hello World!">>,
 
-%     HashSize3 = 128,
-%     application:set_env(my_crypt, hash_size, HashSize3),
-%     Hash3 = my_crypt:hash(Bin),
-%     ?assertEqual(HashSize3, byte_size(Hash3)),
-%     ok.
+    {ok, HashSize1} = application:get_env(my_crypt, hash_size),
+    Hash1 = my_crypt:hash(Bin),
+    ?assertEqual(HashSize1, byte_size(Hash1)),
+
+    HashSize2 = 32,
+    application:set_env(my_crypt, hash_size, HashSize2),
+    Hash2 = my_crypt:hash(Bin),
+    ?assertEqual(HashSize2, byte_size(Hash2)),
+
+    HashSize3 = 128,
+    application:set_env(my_crypt, hash_size, HashSize3),
+    Hash3 = my_crypt:hash(Bin),
+    ?assertEqual(HashSize3, byte_size(Hash3)),
+    ok.

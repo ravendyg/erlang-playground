@@ -3,6 +3,7 @@
 -behaviour(supervisor).
 
 -export([start_link/0, init/1]).
+-include("otp_types.hrl").
 
 start_link() ->
   supervisor:start_link({local, my_crypt_sup}, my_crypt_sup, []).
